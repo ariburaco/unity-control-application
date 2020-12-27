@@ -13,6 +13,8 @@ public class PathFollower_Path : MonoBehaviour
     public GameObject wayPoint;
     public PathCreator pathCreation;
     public bool ActivateController = false;
+    public bool HorizontalController = false;
+    public bool VerticalController = false;
     public bool ResetError = false;
     public float ErrorThreshold = 0.1f;
     public float Kp = 0.1f;
@@ -48,8 +50,8 @@ public class PathFollower_Path : MonoBehaviour
 
 
             error_vector = CalculateDistance();
-            float errorX = error_vector.Distance * error_vector.DirectionX;
-            float errorZ = error_vector.Distance * error_vector.DirectionZ;
+            float errorX = error_vector.DistanceX * error_vector.DirectionX;
+            float errorZ = error_vector.DistanceZ * error_vector.DirectionZ;
 
 
             if (ResetError)
@@ -77,8 +79,20 @@ public class PathFollower_Path : MonoBehaviour
             verticalPID.Ki = Ki;
             verticalPID.Kd = Kd;
 
-            float x = horizontalPID.PID_Compute(errorX);
-            float z = verticalPID.PID_Compute(errorZ);
+            float x = 0;
+            float z = 0;
+
+
+            if (HorizontalController)
+            {
+                x = horizontalPID.PID_Compute(errorX);
+            }
+
+            
+            if (VerticalController)
+            {
+                z = verticalPID.PID_Compute(errorZ);
+            }
 
             MovePlayer(x,z);
 
@@ -134,12 +148,17 @@ public class PathFollower_Path : MonoBehaviour
         for (int i = 0; i < vertices.Length; i++)
         {
 
-            Vector3 nextPoint = 
-            float distance = Vector3.Distance(point, player.transform.position);
-            Vector3 direction = (point - player.transform.position).normalized;
+           
+            float distance = Vector3.Distance(vertices[i], player.transform.position);
+            float distanceX = Mathf.Abs(vertices[i].x - player.transform.position.x);
+            float distanceY = Mathf.Abs(vertices[i].y - player.transform.position.y);
+            float distanceZ = Mathf.Abs(vertices[i].z - player.transform.position.z);
+
+
+            Vector3 direction = (vertices[i] - player.transform.position).normalized;
 
             VertexDistance vertexDistance = new VertexDistance();
-            vertexDistance.Point = point;
+            vertexDistance.Point = vertices[i];
 
             if (direction.x >= 0)
             {
@@ -169,19 +188,60 @@ public class PathFollower_Path : MonoBehaviour
             }
 
             vertexDistance.Distance = distance;
+            vertexDistance.DistanceX = distanceX;
+            vertexDistance.DistanceY = distanceY;
+            vertexDistance.DistanceZ = distanceZ;
 
             vertexDistances.Add(vertexDistance);
 
         }
+        var minDistanceItem = vertexDistances.Select((item, index) => (item, index)).Min();
+        int minIndex = minDistanceItem.index;
+        VertexDistance minDistancePoint = minDistanceItem.item;
+        
 
 
-       
-        foreach (var point in vertices)
+        VertexDistance nextPoint = vertexDistances[minIndex + 1];
+        VertexDistance targetPoint = new VertexDistance();
+
+        targetPoint.Distance = minDistancePoint.Distance + ( nextPoint.Distance - minDistancePoint.Distance  ) * 0.75f;
+        targetPoint.DistanceX = minDistancePoint.DistanceX + ( nextPoint.DistanceX - minDistancePoint.DistanceX) * 0.75f;
+        targetPoint.DistanceY = minDistancePoint.DistanceY + ( nextPoint.DistanceY - minDistancePoint.DistanceY) * 0.75f;
+        targetPoint.DistanceZ = minDistancePoint.DistanceZ + ( nextPoint.DistanceX - minDistancePoint.DistanceX) * 2f;
+
+        Vector3 targetDirection = (minDistancePoint.Point - player.transform.position).normalized;
+
+        if (targetDirection.x >= 0)
         {
-
+            targetPoint.DirectionX = 1;
+        }
+        else
+        {
+            targetPoint.DirectionX = -1;
         }
 
-        VertexDistance minDistancePoint = vertexDistances.Min();
+        if (targetDirection.y >= 0)
+        {
+            targetPoint.DirectionY = 1;
+        }
+        else
+        {
+            targetPoint.DirectionY = -1;
+        }
+
+        if (targetDirection.z >= 0)
+        {
+            targetPoint.DirectionZ = 1;
+        }
+        else
+        {
+            targetPoint.DirectionZ = -1;
+        }
+
+        Debug.Log("min target: " + minDistancePoint.DistanceZ + " next target: " + nextPoint.DistanceZ);
+        //var minDistancedSorted = vertexDistances.OrderBy(m => m.Distance).ToList();
+        minDistancePoint.DistanceZ = 2* nextPoint.DistanceZ;
+        //VertexDistance minDistancePoint = minDistancedSorted[1];
         return minDistancePoint;
 
     }
@@ -191,6 +251,9 @@ public class VertexDistance : IComparable<VertexDistance>
 {
     public Vector3 Point { get; set; }
     public float Distance { get; set; }
+    public float DistanceX { get; set; }
+    public float DistanceY { get; set; }
+    public float DistanceZ { get; set; }
     public float DirectionX { get; set; }
     public float DirectionY { get; set; }
     public float DirectionZ { get; set; }
@@ -203,6 +266,7 @@ public class VertexDistance : IComparable<VertexDistance>
         else
             return 1;
     }
+
 }
 
 
