@@ -175,12 +175,12 @@ MonoBehaviour:
       - {x: 514.6726, y: 0, z: 61.949883}
       - {x: 516.16876, y: 0, z: 76.31142}
       - {x: 517.5569, y: 0, z: 89.63699}
-      - {x: 551.2333, y: 0, z: 130.52951}
+      - {x: 551.2333, y: 0, z: 130.52953}
       - {x: 551.5685, y: 0, z: 130.52959}
-      - {x: 618.3473, y: 0, z: 130.54478}
-      - {x: 627.683, y: 0, z: 181.85947}
+      - {x: 551.7337, y: 0, z: 130.52962}
+      - {x: 627.70605, y: 0, z: 181.98642}
       - {x: 637.0186, y: 0, z: 233.17413}
-      - {x: 662.1639, y: 0, z: 371.38867}
+      - {x: 662.16394, y: 0, z: 371.38867}
       - {x: 689.0978, y: 0, z: 437.09528}
       - {x: 716.0316, y: 0, z: 502.80188}
       - {x: 721.8761, y: 0, z: 517.0598}
@@ -242,20 +242,20 @@ MonoBehaviour:
       flipNormals: 0
     vertexPathUpToDate: 1
     vertexPathMaxAngleError: 0
-    vertexPathMinVertexSpacing: 1
+    vertexPathMinVertexSpacing: 0.1
     pathTransformationEnabled: 1
     showPathBounds: 0
     showPerSegmentBounds: 0
     displayAnchorPoints: 1
     displayControlPoints: 1
     bezierHandleScale: 10
-    globalDisplaySettingsFoldout: 0
+    globalDisplaySettingsFoldout: 1
     keepConstantHandleSize: 0
     vertexHandleSize: 0.2
     showNormalsInVertexMode: 0
     showDisplayOptions: 1
     showPathOptions: 1
-    showVertexPathDisplayOptions: 0
+    showVertexPathDisplayOptions: 1
     showVertexPathOptions: 1
     showNormals: 0
     showNormalsHelpInfo: 0
@@ -860,7 +860,6 @@ GameObject:
   - component: {fileID: 1368362444}
   - component: {fileID: 1368362443}
   - component: {fileID: 1368362447}
-  - component: {fileID: 1368362448}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -962,27 +961,11 @@ MonoBehaviour:
   pathCreation: {fileID: 170392857}
   ActivateController: 1
   ResetError: 0
-  Kp: 0.00011
-  Ki: 0.0012
-  Kd: 0.0013
-  Speed: 10
+  Kp: -0.0011
+  Ki: -0.0012
+  Kd: -0.0013
+  Speed: 6
   ErrorThreshold: 0.1
---- !u!54 &1368362448
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1368362442}
-  serializedVersion: 2
-  m_Mass: 10
-  m_Drag: 0
-  m_AngularDrag: 0
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
 --- !u!1 &1476787629
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class PathFollower_Path : MonoBehaviour
 {
-   
+
     public GameObject player;
     public GameObject wayPoint;
     public PathCreator pathCreation;
@@ -40,32 +40,31 @@ public class PathFollower_Path : MonoBehaviour
 
     void LateUpdate()
     {
-        MovePlayer(PWM);
+       
     }
 
     void FixedUpdate()
     {
-
-
         if (ActivateController)
         {
             VertexDistance error_vector = CalculateDistance();
 
-
-
-
-            Debug.Log("x: " + error_vector.Direction.x + " z: " + error_vector.Direction.z);
+           // Debug.Log("x: " + error_vector.Direction.x + " z: " + error_vector.Direction.z);
 
             error_z2 = error_z1;
             error_z1 = error;
-            error = error_vector.Direction.x;
-            
+            error = error_vector.Distance * error_vector.Direction;
+            PIDController(Kp, Ki, Kd);
+            MovePlayer(PWM);
+
             if (ResetError)
             {
                 error = 0;
+                error_z2 = 0;
+                error_z1 = 0;
+                PWM = 0;
+                PWM_z1 = 0;
             }
-
-            PIDController(Kp, Ki, Kd);
 
             if (Math.Abs(error) < ErrorThreshold)
             {
@@ -73,9 +72,9 @@ public class PathFollower_Path : MonoBehaviour
             }
         }
 
-       
 
-        // Debug.Log("e: " + error + " e_z1: " + error_z1 + " e_z2: " + error_z2);
+
+        Debug.Log("e: " + error + " PWM: " + PWM + " PWM_z1: " + PWM_z1);
 
     }
 
@@ -83,17 +82,15 @@ public class PathFollower_Path : MonoBehaviour
     {
         //float speed = 10;
         float moveX = Speed * Input.GetAxis("Horizontal") * Time.deltaTime;
-        float moveZ = Speed * Input.GetAxis("Vertical") * Time.deltaTime;
-        Vector3 translate = new Vector3(moveX, 0, moveZ );
+        float moveZ = Speed  * Time.deltaTime; // Input.GetAxis("Vertical")
+        Vector3 translate = new Vector3(moveX, 0, moveZ);
         player.transform.Translate(translate);
 
         if (ActivateController)
         {
-            translate = new Vector3(x, 0, 0);
+            translate = new Vector3(x * Time.deltaTime, 0, 0);
             player.transform.Translate(translate);
         }
-
-       
 
     }
 
@@ -114,18 +111,26 @@ public class PathFollower_Path : MonoBehaviour
 
     VertexDistance CalculateDistance()
     {
-       
+
         vertexDistances.Clear();
         foreach (var point in vertices)
         {
 
-            float distance = Vector3.Distance(player.transform.position, point);
-            Vector3 direction = (player.transform.position - point).normalized;
+            float distance = Vector3.Distance(point , player.transform.position);
+            Vector3 direction = (point - player.transform.position).normalized;
 
             VertexDistance vertexDistance = new VertexDistance();
             vertexDistance.Point = point;
             vertexDistance.Distance = distance;
-            vertexDistance.Direction = direction;
+            if (direction.x >= 0)
+            {
+                vertexDistance.Direction = 1;
+
+            }
+            else
+            {
+                vertexDistance.Direction = -1;
+            }
 
             vertexDistances.Add(vertexDistance);
         }
@@ -147,9 +152,9 @@ public class PathFollower_Path : MonoBehaviour
         float Kp = 2 * Kd - a2;
         float Ki = -(a1 + Kp + Kd);
 
-
-        PWM = PWM_z1 + Kp * (error - error_z1) + Ki * error + Kd * (error - 2 * error_z1 + error_z2);
         PWM_z1 = PWM;
+        PWM = PWM_z1 + Kp * (error - error_z1) + Ki * error + Kd * (error - 2 * error_z1 + error_z2);
+       
     }
 
 
@@ -159,7 +164,7 @@ public class VertexDistance : IComparable<VertexDistance>
 {
     public Vector3 Point { get; set; }
     public float Distance { get; set; }
-    public Vector3 Direction { get; set; }
+    public float Direction { get; set; }
     int IComparable<VertexDistance>.CompareTo(VertexDistance other)
     {
         if (other.Distance > this.Distance)
