@@ -11,6 +11,8 @@ public class PathFollower_Path : MonoBehaviour
     public GameObject player;
     public GameObject wayPoint;
     public PathCreator pathCreation;
+    public bool ActivateController = false;
+    public bool ResetError = false;
     public float Kp = 0.0001f;
     public float Ki = 0.0001f;
     public float Kd = 0.0001f;
@@ -25,6 +27,7 @@ public class PathFollower_Path : MonoBehaviour
     float PWM = 0f;
     float PWM_z1 = 0f;
 
+    List<VertexDistance> vertexDistances = new List<VertexDistance>();
 
 
     void Start()
@@ -44,21 +47,34 @@ public class PathFollower_Path : MonoBehaviour
     {
 
 
-        VertexDistance error_vector = CalculateDistance();
-
-        error_z2 = error_z1;
-        error_z1 = error;
-        error = error_vector.Direction.x;
-        PIDController(Kp, Ki, Kd);
-
-        if (Math.Abs(error) < ErrorThreshold)
+        if (ActivateController)
         {
-            PWM = 0f;
+            VertexDistance error_vector = CalculateDistance();
+
+
+
+
+            Debug.Log("x: " + error_vector.Direction.x + " z: " + error_vector.Direction.z);
+
+            error_z2 = error_z1;
+            error_z1 = error;
+            error = error_vector.Direction.x;
+            
+            if (ResetError)
+            {
+                error = 0;
+            }
+
+            PIDController(Kp, Ki, Kd);
+
+            if (Math.Abs(error) < ErrorThreshold)
+            {
+                PWM = 0f;
+            }
         }
 
-        
+       
 
-        Debug.Log(error);
         // Debug.Log("e: " + error + " e_z1: " + error_z1 + " e_z2: " + error_z2);
 
     }
@@ -70,9 +86,14 @@ public class PathFollower_Path : MonoBehaviour
         float moveZ = Speed * Input.GetAxis("Vertical") * Time.deltaTime;
         Vector3 translate = new Vector3(moveX, 0, moveZ );
         player.transform.Translate(translate);
+
+        if (ActivateController)
+        {
+            translate = new Vector3(x, 0, 0);
+            player.transform.Translate(translate);
+        }
+
        
-        translate = new Vector3(x, 0, 0);
-        player.transform.Translate(translate);
 
     }
 
@@ -93,7 +114,7 @@ public class PathFollower_Path : MonoBehaviour
 
     VertexDistance CalculateDistance()
     {
-        List<VertexDistance> vertexDistances = new List<VertexDistance>();
+       
         vertexDistances.Clear();
         foreach (var point in vertices)
         {
